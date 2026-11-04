@@ -130,8 +130,8 @@ def open_card(sheet):
 
 
 def close_card(sheet):
-    """Ends the panel with its hairline border."""
-    sheet.raw(f'</g><rect x="0.5" y="0.5" width="{WIDTH - 1}" height="%INNER%" rx="16" fill="none" stroke="{LINE}"/>')
+    """Ends the panel. It has no border, because browsers round each slice differently and a border shifts between them."""
+    sheet.raw("</g>")
 
 
 def draw_top(sheet, engineer):
@@ -349,6 +349,7 @@ def write_readme(engineer, work, skills, now):
     # A heading has the smallest line height GitHub offers, so the short email row sits without a gap.
     panel = "".join([
         "<h6>",
+        still("views", f'<img src="{VIEWS_COUNTER}" alt="" width="0" height="0">'),
         still("panel_top", slice_image("panel_top", f"{engineer['name']}, {engineer['role']}, {engineer['city']}", 100)),
         still("panel_left", slice_image("panel_left", "", left_percent)),
         f'<a href="mailto:{EMAIL}">{slice_image("panel_email", f"Email {EMAIL}", email_percent)}</a>',
@@ -356,8 +357,7 @@ def write_readme(engineer, work, skills, now):
         still("panel_rest", slice_image("panel_rest", rest_alt, 100)),
         "</h6>",
     ])
-    blocks = [panel, f'<img src="{VIEWS_COUNTER}" alt="" width="1" height="1">']
-    (ROOT / "PROFILE_README.md").write_text("\n\n".join(blocks) + "\n", encoding="utf-8", newline="\n")
+    (ROOT / "PROFILE_README.md").write_text(panel + "\n", encoding="utf-8", newline="\n")
 
 
 def main():
