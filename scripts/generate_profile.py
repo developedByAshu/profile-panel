@@ -35,6 +35,8 @@ WIDTH, PAD = 1000, 44
 INNER = WIDTH - PAD * 2
 EMAIL_LEFT, EMAIL_RIGHT, EMAIL_TOP, EMAIL_BOTTOM = 40, 360, 138, 170
 INTRO_Y, WASH_HEIGHT = 228, 300
+# Just under 100, because GitHub centres the column on a half pixel at common widths, where the email row would round 1 px short.
+PANEL_PERCENT = 99.9
 ORANGE, INK, BODY, MUTED, LINE, PANEL, EMPTY, TILE = "#FF7A1A", "#F4F2EE", "#B9BCC2", "#7E828A", "#26292F", "#0B0D11", "#181B20", "#12151B"
 HEAT = ["#6B2E0A", "#B24A0E", "#EE6A14", "#FF8F33"]
 BLENDS = ["#FF7A1A", "#CF6216", "#A04C13", "#7A3A10", "#58290C", "#3D1D09"]
@@ -326,9 +328,9 @@ def draw_panel(engineer, facts, days, languages, work, skills, now, today):
     rest.save(ASSETS / "panel_rest.svg", height, (0, EMAIL_BOTTOM, WIDTH, height - EMAIL_BOTTOM))
 
 
-def slice_image(name, alt, percent):
-    """Returns one panel slice. align=top removes the space an image otherwise keeps under itself."""
-    return f'<img src="{ASSETS_URL}/{name}.svg" alt="{escape(alt)}" width="{percent}%" align="top">'
+def slice_image(name, alt, units):
+    """Returns one panel slice, the given panel units wide. align=top removes the space an image otherwise keeps under itself."""
+    return f'<img src="{ASSETS_URL}/{name}.svg" alt="{escape(alt)}" width="{units * PANEL_PERCENT / WIDTH:g}%" align="top">'
 
 
 def still(name, image):
@@ -344,17 +346,15 @@ def write_readme(engineer, work, skills, now):
         "Skills.", *(f"{kind}: {names}." for kind, names in skills),
         "Now.", *(f"{row['label']}: {row['what']}" for row in now),
     ])
-    left_percent = EMAIL_LEFT * 100 // WIDTH
-    email_percent = (EMAIL_RIGHT - EMAIL_LEFT) * 100 // WIDTH
     # A heading has the smallest line height GitHub offers, so the short email row sits without a gap.
     panel = "".join([
         "<h6>",
         still("views", f'<img src="{VIEWS_COUNTER}" alt="" width="0" height="0">'),
-        still("panel_top", slice_image("panel_top", f"{engineer['name']}, {engineer['role']}, {engineer['city']}", 100)),
-        still("panel_left", slice_image("panel_left", "", left_percent)),
-        f'<a href="mailto:{EMAIL}">{slice_image("panel_email", f"Email {EMAIL}", email_percent)}</a>',
-        still("panel_right", slice_image("panel_right", "", 100 - left_percent - email_percent)),
-        still("panel_rest", slice_image("panel_rest", rest_alt, 100)),
+        still("panel_top", slice_image("panel_top", f"{engineer['name']}, {engineer['role']}, {engineer['city']}", WIDTH)),
+        still("panel_left", slice_image("panel_left", "", EMAIL_LEFT)),
+        f'<a href="mailto:{EMAIL}">{slice_image("panel_email", f"Email {EMAIL}", EMAIL_RIGHT - EMAIL_LEFT)}</a>',
+        still("panel_right", slice_image("panel_right", "", WIDTH - EMAIL_RIGHT)),
+        still("panel_rest", slice_image("panel_rest", rest_alt, WIDTH)),
         "</h6>",
     ])
     (ROOT / "PROFILE_README.md").write_text(panel + "\n", encoding="utf-8", newline="\n")
